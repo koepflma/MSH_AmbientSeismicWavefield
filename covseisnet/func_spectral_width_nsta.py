@@ -9,30 +9,34 @@ from itertools import compress
 import warnings
 warnings.filterwarnings("ignore")
 
-''' spectral_width is a function to calculate one day of the spectral width
+"""
+spectral_width is a function to calculate one day of the spectral width
 input: jday: integer, interger correspond to julian day
         client: string, waveform client
         list_stations: list with strings, string is 'network-station-channel'
         year: integer, year
         preprocessing_type: list with strings, possibilities: 'no_preprocessing', 'OBT', 'OBS', 'spectral_temporal'
-output: save UTCDateTime, frequency, spectral width AND number of stations as .npz (per day) for the selected preprocessing(s)'''
+output: save UTCDateTime, frequency, spectral width AND number of stations as .npz (per day) for the selected preprocessing(s)
+"""
 
-def spectral_width_nsta(jday, client, list_stations, year, preprocessing_type):
+def spectral_width_nsta(jday, list_stations, year, preprocessing_type):
     start_time = time.time()
     
-    # define time parameter--------------------------------------------------------------------------------------------------
-
+    # define time parameter ======================================================================================= 
+    client = Client("IRIS") 
     hour = 0 # start hour
     signal_duration_sec = 24 * 3600 # hour * sec
 
     window_duration_sec = 30 # Fourier calcualation window in seconds (depends on array opening)
     average = 60 # number of windows to estimate the sample covariance (bigger than number of stations)
+    
+    samplingrate = 100 # Hz, has to be the same as the actual sampling rate, only used for days without data
 
-    # check which files already exist---------------------------------------------------------------------------------------
+    # check which files already exist ======================================================================================= 
+    # path to save data
+    file_path = '../output/covariance/data/{}/{:03d}/'.format(year,jday)
 
-    file_path = '/data/whd02/data_manuela/MtStHelens/covariance/{}/{:03d}/'.format(year,jday)
-#     file_path = '/data/wsd03/data_manuela/MtStHelens/covariance/tremor/{}/{:03d}/'.format(year,jday)
-
+    # test if the files already exist
     file_list = [file_path+'{}_{}_{:03d}_wd{}_av{}.npz'.format(preprocessing,year,jday,int(window_duration_sec), average) 
                  for preprocessing in preprocessing_type]
 
@@ -48,10 +52,10 @@ def spectral_width_nsta(jday, client, list_stations, year, preprocessing_type):
         for missing_file in missing_file_list: # loop over missing files
             preprocessing_type.append(missing_file.split('/')[-1].split('_')[0]) # add missing preprocessing to list
     
-        if not os.path.exists(file_path): # create path if not exist
-            os.makedirs(file_path)
+        # bild path to save figures if it does not exist yet
+        os.makedirs(file_path, exist_ok=True)
 
-        # read data and synchronize data-------------------------------------------------------------------------------------
+        # read data and synchronize data ======================================================================================= 
 
         stream = csn.arraystream.ArrayStream()
 
@@ -90,9 +94,6 @@ def spectral_width_nsta(jday, client, list_stations, year, preprocessing_type):
 
                     st.detrend('linear')
                     st.taper(max_percentage=None,max_length=300, type='hann') #max_length in sec
-                            
-            #         # downsample data to 25 Hz
-            #         st[0].resample(25)
                     
                     stream.append(st[0])
                 print(netstacha, jday)
@@ -102,19 +103,11 @@ def spectral_width_nsta(jday, client, list_stations, year, preprocessing_type):
                 pass
 
         if len(stream) == 0: # if no station was active or not enough data
-            samplingrate = 100
             freq_len = window_duration_sec*2*samplingrate
             time_len = window_duration_sec*0.25*average
             UTC_times = np.array([t+sec for sec in np.arange(0,signal_duration_sec+1,time_len)])
             UTC_times = np.delete(UTC_times,[-3,-2]) # the third and second last time steps are not included (don't know why)
             UTC_times[-1] = UTC_times[-1]-0.01 # last time step is 23, 59, 59, 990000 not 24, 0, 0, 0
-            
-            # 24 h, wd 60, av 60
-#             frequencies = np.linspace(0,100,12000) # start, stop, number of steps
-#             spectral_width = np.empty((94, 11999),)
-#             spectral_width[:] = np.nan
-#             covariances = np.empty((94, 11999, 6, 6),)
-#             covariances[:] = np.nan
 
             frequencies = np.linspace(0,samplingrate,freq_len) # start, stop, number of steps
             spectral_width = np.empty((time_len-1, freq_len-1),)
@@ -132,9 +125,9 @@ def spectral_width_nsta(jday, client, list_stations, year, preprocessing_type):
             # synchronize data
             stream = stream.synchronize(start=t, duration_sec=signal_duration_sec, method="linear")
 
-            # calculate & save spectral width for different pre-processing---------------------------------------------------------
+            # calculate & save spectral width for different pre-processing ====================================== 
 
-            if 'NoPreP' in preprocessing_type: 
+            if 'NoPreP' in preprocessing_type: # no-preporcessing ======================================
                     times, frequencies, covariances = csn.covariancematrix.calculate(
                 stream, window_duration_sec, average)
 
@@ -146,7 +139,7 @@ def spectral_width_nsta(jday, client, list_stations, year, preprocessing_type):
 
                     np.savez_compressed(file_path + file_name,UTC_times=UTC_times, frequencies=frequencies, covariances=covariances, spectral_width=spectral_width, n_sta=len(stream))
 
-            if 'OBS' in preprocessing_type:
+            if 'OBS' in preprocessing_type:  # One-bit spectral withening preporcessing ======================================
                     stream.preprocess()
 
                     times, frequencies, covariances = csn.covariancematrix.calculate(
@@ -160,7 +153,7 @@ def spectral_width_nsta(jday, client, list_stations, year, preprocessing_type):
 
                     np.savez_compressed(file_path + file_name,UTC_times=UTC_times, frequencies=frequencies, covariances=covariances, spectral_width=spectral_width, n_sta=len(stream))    
 
-            if 'OBT' in preprocessing_type:
+            if 'OBT' in preprocessing_type: # One-bit temporal normalization preporcessing ======================================
                     stream.preprocess(domain="temporal", method="onebit")
 
                     times, frequencies, covariances = csn.covariancematrix.calculate(
@@ -174,7 +167,7 @@ def spectral_width_nsta(jday, client, list_stations, year, preprocessing_type):
 
                     np.savez_compressed(file_path + file_name,UTC_times=UTC_times, frequencies=frequencies, covariances=covariances, spectral_width=spectral_width, n_sta=len(stream))
 
-            if 'ST' in preprocessing_type:
+            if 'ST' in preprocessing_type: # Smooth spectral and temporal preprozessing ======================================
                     stream.preprocess(domain="spectral", method="smooth")
                     stream.preprocess(domain="temporal", method="smooth")
 
@@ -191,4 +184,4 @@ def spectral_width_nsta(jday, client, list_stations, year, preprocessing_type):
 
     end_time = time.time()
     print('Day {} calculation-time: {} s'.format(jday,round(end_time-start_time,3)))
-    return()
+    return
