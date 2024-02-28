@@ -41,7 +41,3 @@ for netstacha in list_stations:
     p.close()
     p.join()
     print('Calculation tooks {} seconds.'.format(round(time.time()-stime),3))
-
-# for netstacha in list_stations:
-#     for jday in jdays:
-#         freq_bands(jday, year, netstacha, freqs)
