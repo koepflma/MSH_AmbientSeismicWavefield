@@ -35,7 +35,7 @@ bank_keyword_arguments = (
 )
   
 # path to save figures
-dirpath = '../output/data/'
+dirpath = '../output/scatseisnet/'
 # bild path to save figures if it does not exist yet
 os.makedirs(dirpath, exist_ok=True)
 
@@ -86,7 +86,7 @@ if len(stream) == 0:
     print('empty stream')
     sys.exit()
 if len(stream) != 0:
-    stream.write(dirpath+"scattering_stream.mseed", format="MSEED")
+    stream.write(dirpath+"data/scattering_stream.mseed", format="MSEED")
     print(stream)
 
 print('Loading data tooks {} minutes.'.format(round((time.time()-stime)/60,3)))
@@ -102,7 +102,7 @@ network = ScatteringNetwork(
 print(network)
 
 # Save the scattering network with Pickle
-filepath_save = os.path.join(dirpath, "scattering_network.pickle")
+filepath_save = os.path.join(dirpath, "data/scattering_network.pickle")
 with open(filepath_save, "wb") as file_save:
     pickle.dump(network, file_save, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -127,7 +127,7 @@ scattering_coefficients = network.transform(segments, reduce_type=np.mean)
 
 # Save the features in a pickle file
 np.savez(
-    dirpath+"scattering_coefficients.npz",
+    dirpath+"data/scattering_coefficients.npz",
     order_1=scattering_coefficients[0],
     order_2=scattering_coefficients[1],
     times=timestamps,
