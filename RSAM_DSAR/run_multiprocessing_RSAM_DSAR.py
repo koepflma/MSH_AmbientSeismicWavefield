@@ -1,3 +1,11 @@
+"""
+This script calls func_RSAM_DSAR and run a multi-
+processing of the function freq_bands.
+The code is adapted from covseisnet.
+Output: csv-file per day and station including
+        rsam, mf, hf, dsar , ldsar, lhdsar, vsar, lhvsar,
+        rms, rmes, pgv, pga
+"""
 import time
 import argparse
 import warnings
