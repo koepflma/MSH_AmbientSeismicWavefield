@@ -203,7 +203,6 @@ def freq_bands(jday, year, netstacha, freqs):
         freqs_names = ['rsam','mf','hf','dsar','ldsar', 'lhdsar', 'vsar', 'lhvsar']
         df = pd.DataFrame(columns=freqs_names)
         daysec = 24*3600
-        freqs = [[2,5], [4.5,8], [8,16]]
 
         st = preprocessing(year,jday, net, sta, cha)
 
