@@ -1,5 +1,11 @@
 # Code belonging to: "Examining 22 Years of Ambient Seismic Wavefield at Mount St. Helens"
 
+## Paper Abstract
+
+An increase in seismic activity precedes most volcanic eruptions. Whereas event‐based forecasting approaches have been successful, some eruptions remain unanticipated, resulting in casualties and damage. Our study leverages the recent advancements in ambient field seismology. We explore features extracted from continuous ambient fields using traditional methods, for example, peak ground velocity, peak ground acceleration, root mean square, root median square, real‐time seismic amplitude measurement, and novel methods (displacement seismic amplitude ratio and spectral width). In addition, we explore unsupervised learning of higher order wavelet features using scattering networks. We find that combining all the methods was necessary to disentangle the effects of seismic sources from structural changes at Mount St. Helens. Although the ambient wavefield‐based approach does not yield additional or more significant precursory signals than event‐based methods at Mount St. Helens, our study demonstrates that the ambient wavefield provides supplementary information, mainly about structural changes and complements traditional methods. The ambient seismic wavefield offers additional insights into long‐lasting processes. We find enhanced wave attenuation correlating with geochemical measurements. We interpret this as ongoing structural changes, such as dome growth or the evolution of the volcanic conduit system. On annual and decadal timescales, we interpret seasonal seismic attenuation in the shallow subsurface as groundwater fluctuations, corroborated by observations at the nearby Spirit Lake level. This multimethod approach at Mount St. Helens sheds light on a volcanic system’s underlying dynamics and structure.
+
+You can find the published paper [here](https://pubs.geoscienceworld.org/ssa/srl/article/doi/10.1785/0220240079/644839/Examining-22-Years-of-Ambient-Seismic-Wavefield-at).
+
 ## Feature extraction
 This github repository provides the code to extract the following features:
 - Statistical Features: root-mean-square (RMS), root-median-square (RMeS), peak-ground-velocity (PGV), and peak-ground-acceleration (PGA)
